@@ -90,6 +90,7 @@
 #include "abductor_baton_spell.dm"
 #include "ablative_hud.dm"
 #include "achievements.dm"
+#include "ai_crew_outfits.dm"
 #include "ai_crew_perception.dm"
 #include "ai_crew_speech.dm"
 #include "anchored_mobs.dm"
