@@ -27,6 +27,8 @@
 	var/tmp/next_tick_time = 0
 	/// Optional attachment context for audit trails.
 	var/tmp/attach_reason = "unknown"
+	/// Perception component bound to the controlled human.
+	var/tmp/datum/component/ai_crew_perception/perception_component
 
 	New(atom/new_pawn, new_reason)
 		controller_id = next_controller_id++
@@ -35,6 +37,7 @@
 		return ..(new_pawn)
 
 	Destroy(force)
+		QDEL_NULL(perception_component)
 		STOP_PROCESSING(SSai_crew, src)
 		GLOB.ai_crew_controllers -= src
 		controlled_human = null
@@ -56,6 +59,20 @@
 	controlled_human = new_human
 	if(!(src in GLOB.ai_crew_controllers))
 		GLOB.ai_crew_controllers += src
+	if(perception_component)
+		QDEL_NULL(perception_component)
+	if(controlled_human)
+		var/datum/component/ai_crew_perception/existing = controlled_human.GetComponent(/datum/component/ai_crew_perception)
+		if(istype(existing))
+			existing.set_controller(src)
+			perception_component = existing
+		else
+			perception_component = controlled_human.AddComponent(/datum/component/ai_crew_perception, src)
+			if(!istype(perception_component))
+				ai_crew_log("failed to attach perception", list(
+					"controller" = get_controller_label(),
+					"mob" = controlled_human ? REF(controlled_human) : null,
+				), TRUE)
 	controlled_human?.set_stat(CONSCIOUS)
 	controlled_human?.update_sight()
 	controlled_human?.update_pipe_vision()
@@ -71,6 +88,8 @@
 
 /datum/ai_controller/crew_human/UnpossessPawn(destroy)
 	var/mob/living/carbon/human/old_human = controlled_human
+	if(perception_component)
+		QDEL_NULL(perception_component)
 	GLOB.ai_crew_controllers -= src
 	STOP_PROCESSING(SSai_crew, src)
 	controlled_human = null
