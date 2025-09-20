@@ -171,14 +171,19 @@ ADMIN_VERB(toggle_ai, R_SERVER, "Toggle AI", "Toggle the ability to choose AI jo
 
 ADMIN_VERB(toggle_ai_crew, R_SERVER, "Toggle AI Crew", "Toggle the AI Crew feature flag.", ADMIN_CATEGORY_SERVER)
 	var/ai_crew_state = CONFIG_GET(flag/ai_crew_enabled)
-	if(!CONFIG_SET(flag/ai_crew_enabled, !ai_crew_state))
+	var/new_state = !ai_crew_state
+	if(!CONFIG_SET(flag/ai_crew_enabled, new_state))
 		to_chat(user, span_warning("The AI Crew flag is locked; update the config file to change it."))
 		return
-	var/new_state_text = !ai_crew_state ? "ENABLED" : "DISABLED"
+	var/new_state_text = new_state ? "ENABLED" : "DISABLED"
 	message_admins(span_adminnotice("[key_name_admin(user)] toggled AI Crew to [new_state_text]."))
 	log_admin("[key_name(user)] toggled AI Crew to [new_state_text].")
 	logger.Log(LOG_CATEGORY_CONFIG, "AI Crew feature flag set to [new_state_text] by [key_name(user)].")
 	SSblackbox.record_feedback("nested tally", "admin_toggle", 1, list("Toggle AI Crew", new_state_text))
+#ifdef CREW_AI_FOUNDATION
+	if(!new_state)
+		ai_crew_detach_all_controllers("feature toggle disabled")
+#endif
 
 ADMIN_VERB(toggle_respawn, R_SERVER, "Toggle Respawn", "Toggle the ability to respawn.", ADMIN_CATEGORY_SERVER)
 	var/respawn_state = CONFIG_GET(flag/allow_respawn)

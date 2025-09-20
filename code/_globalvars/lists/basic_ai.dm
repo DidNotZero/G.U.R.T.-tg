@@ -11,9 +11,11 @@ GLOBAL_LIST_INIT(ai_controllers_by_status, list(
 ///basic ai controllers based on their z level
 GLOBAL_LIST_EMPTY(ai_controllers_by_zlevel)
 
+///all active AI Crew human controllers
+GLOBAL_LIST_EMPTY(ai_crew_controllers)
+
 ///basic ai controllers that are currently performing idled behaviors
 GLOBAL_LIST_INIT_TYPED(unplanned_controllers, /list/datum/ai_controller, list(
 	AI_STATUS_ON = list(),
 	AI_STATUS_IDLE = list(),
 ))
-
