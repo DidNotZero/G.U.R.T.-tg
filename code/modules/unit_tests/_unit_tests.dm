@@ -91,6 +91,7 @@
 #include "ablative_hud.dm"
 #include "achievements.dm"
 #include "ai_crew_perception.dm"
+#include "ai_crew_speech.dm"
 #include "anchored_mobs.dm"
 #include "anonymous_themes.dm"
 #include "antag_conversion.dm"

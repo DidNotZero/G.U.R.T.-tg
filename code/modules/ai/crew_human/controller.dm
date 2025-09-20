@@ -29,11 +29,20 @@
 	var/tmp/attach_reason = "unknown"
 	/// Perception component bound to the controlled human.
 	var/tmp/datum/component/ai_crew_perception/perception_component
+	/// Pending speech requests waiting for delivery.
+	var/tmp/list/speech_queue
+	/// Cooldown buckets keyed by resolved channel identifiers.
+	var/tmp/list/speech_channel_cooldowns
+	/// Next world.time stamp when any speech may be emitted.
+	var/tmp/next_speech_time = 0
 
 	New(atom/new_pawn, new_reason)
 		controller_id = next_controller_id++
 		if(!isnull(new_reason))
 			attach_reason = new_reason
+		speech_queue = list()
+		speech_channel_cooldowns = list()
+		next_speech_time = 0
 		return ..(new_pawn)
 
 	Destroy(force)
@@ -41,6 +50,8 @@
 		STOP_PROCESSING(SSai_crew, src)
 		GLOB.ai_crew_controllers -= src
 		controlled_human = null
+		LAZYCLEARLIST(speech_queue)
+		LAZYCLEARLIST(speech_channel_cooldowns)
 		return ..()
 
 	TryPossessPawn(atom/new_pawn)
@@ -349,12 +360,13 @@
 				"burn" = controlled_human.getFireLoss(),
 				"mood" = controlled_human.mob_mood ? controlled_human.mob_mood.sanity : null,
 			), TRUE)
+	process_speech_queue()
 	return
 
 PROCESSING_SUBSYSTEM_DEF(ai_crew)
 	name = "AI Crew Controllers"
 	priority = FIRE_PRIORITY_NPC
-	flags = SS_BACKGROUND|SS_POST_FIRE_TIMING
+	flags = SS_BACKGROUND|SS_POST_FIRE_TIMING|SS_NO_INIT
 	wait = 1 SECONDS
 	runlevels = RUNLEVEL_GAME | RUNLEVEL_POSTGAME
 	stat_tag = "AIC"

@@ -3185,6 +3185,7 @@
 #include "code\modules\actionspeed\modifiers\wound.dm"
 #include "code\modules\ai\crew_human\bb_keys.dm"
 #include "code\modules\ai\crew_human\controller.dm"
+#include "code\modules\ai\crew_human\speech.dm"
 #include "code\modules\ai\crew_human\perception_components.dm"
 #include "code\modules\ai\crew_human\debug.dm"
 #include "code\modules\admin\admin.dm"
