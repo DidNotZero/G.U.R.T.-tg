@@ -2,6 +2,19 @@
 
 /// Basic controller stub for human AI crew placeholders.
 /datum/ai_controller/crew_human
+	blackboard = list(
+		BB_CREW_PERSONA = null,
+		BB_CREW_TRAITS = list(),
+		BB_CREW_TONE = null,
+		BB_CREW_TALK_BUDGET = list(),
+		BB_CREW_LAST_HEARD = list(),
+		BB_CREW_ZONE = null,
+		BB_CREW_GOAL = null,
+		BB_CREW_NAVPATH = list(),
+		BB_CREW_INTENT = null,
+		BB_CREW_TARGET_CHANNEL = null,
+		BB_CREW_FALLBACK_FLAG = FALSE,
+	)
 	/// Unique identifier for logging and debugging.
 	var/controller_id
 	/// Next id allocator shared across all controllers.
@@ -93,6 +106,201 @@
 		"loc" = location,
 	))
 	qdel(src)
+
+/// Returns a shallow copy of persona metadata for external consumers.
+/datum/ai_controller/crew_human/proc/get_persona()
+	var/list/persona = blackboard[BB_CREW_PERSONA]
+	if(!islist(persona))
+		return null
+	return persona.Copy()
+
+/// Writes persona metadata to the blackboard.
+/datum/ai_controller/crew_human/proc/set_persona(list/persona)
+	if(!islist(persona))
+		clear_blackboard_key(BB_CREW_PERSONA)
+		return
+	override_blackboard_key(BB_CREW_PERSONA, persona.Copy())
+
+/// Returns a copy of the configured trait list.
+/datum/ai_controller/crew_human/proc/get_traits()
+	var/list/traits = blackboard[BB_CREW_TRAITS]
+	if(!islist(traits))
+		return list()
+	return traits.Copy()
+
+/// Persists persona traits to the blackboard.
+/datum/ai_controller/crew_human/proc/set_traits(list/traits)
+	if(!islist(traits))
+		override_blackboard_key(BB_CREW_TRAITS, list())
+		return
+	override_blackboard_key(BB_CREW_TRAITS, traits.Copy())
+
+/// Returns the current tone hint (serious|dry|light).
+/datum/ai_controller/crew_human/proc/get_tone()
+	var/tone = blackboard[BB_CREW_TONE]
+	return istext(tone) ? tone : null
+
+/// Stores the tone hint value on the blackboard.
+/datum/ai_controller/crew_human/proc/set_tone(tone)
+	if(isnull(tone) || !istext(tone))
+		clear_blackboard_key(BB_CREW_TONE)
+		return
+	set_blackboard_key(BB_CREW_TONE, tone)
+
+/// Returns a copy of the cadence budgeting structure.
+/datum/ai_controller/crew_human/proc/get_talk_budget()
+	var/list/budget = blackboard[BB_CREW_TALK_BUDGET]
+	if(!islist(budget))
+		return list()
+	return budget.Copy()
+
+/// Replaces the cadence budgeting structure on the blackboard.
+/datum/ai_controller/crew_human/proc/set_talk_budget(list/budget)
+	if(!islist(budget))
+		override_blackboard_key(BB_CREW_TALK_BUDGET, list())
+		return
+	override_blackboard_key(BB_CREW_TALK_BUDGET, budget.Copy())
+
+/// Returns the rolling buffer of recently heard lines (newest last).
+/datum/ai_controller/crew_human/proc/get_last_heard()
+	var/list/heard = blackboard[BB_CREW_LAST_HEARD]
+	if(!islist(heard))
+		return list()
+	return heard.Copy()
+
+/// Pushes a new entry onto the heard buffer, trimming to the configured limit.
+/datum/ai_controller/crew_human/proc/push_last_heard(entry)
+	var/list/payload
+	if(islist(entry))
+		var/list/entry_list = entry
+		payload = entry_list.Copy()
+	else
+		payload = list("message" = entry)
+	if(isnull(payload["timestamp"]))
+		payload["timestamp"] = world.time
+	LAZYINITLIST(blackboard[BB_CREW_LAST_HEARD])
+	blackboard[BB_CREW_LAST_HEARD] += list(payload)
+	while(length(blackboard[BB_CREW_LAST_HEARD]) > BB_CREW_LAST_HEARD_MAX_ENTRIES)
+		blackboard[BB_CREW_LAST_HEARD].Cut(1, 2)
+
+/// Clears all tracked heard entries.
+/datum/ai_controller/crew_human/proc/clear_last_heard()
+	override_blackboard_key(BB_CREW_LAST_HEARD, list())
+
+/// Returns the identifier for the pawn's current navigation zone.
+/datum/ai_controller/crew_human/proc/get_zone()
+	var/zone = blackboard[BB_CREW_ZONE]
+	return istext(zone) ? zone : null
+
+/// Updates the current navigation zone identifier.
+/datum/ai_controller/crew_human/proc/set_zone(zone)
+	if(isnull(zone) || !istext(zone))
+		clear_blackboard_key(BB_CREW_ZONE)
+		return
+	set_blackboard_key(BB_CREW_ZONE, zone)
+
+/// Returns a copy of the active high-level goal payload.
+/datum/ai_controller/crew_human/proc/get_goal()
+	var/list/goal = blackboard[BB_CREW_GOAL]
+	if(!islist(goal))
+		return null
+	return goal.Copy()
+
+/// Replaces the stored goal payload on the blackboard.
+/datum/ai_controller/crew_human/proc/set_goal(list/goal)
+	if(!islist(goal))
+		clear_blackboard_key(BB_CREW_GOAL)
+		return
+	override_blackboard_key(BB_CREW_GOAL, goal.Copy())
+
+/// Clears the active goal payload entirely.
+/datum/ai_controller/crew_human/proc/clear_goal()
+	clear_blackboard_key(BB_CREW_GOAL)
+
+/// Returns a copy of the current navigation path step list.
+/datum/ai_controller/crew_human/proc/get_navpath()
+	var/list/path = blackboard[BB_CREW_NAVPATH]
+	if(!islist(path))
+		return list()
+	return path.Copy()
+
+/// Stores a new navigation path list on the blackboard.
+/datum/ai_controller/crew_human/proc/set_navpath(list/path)
+	if(!islist(path))
+		override_blackboard_key(BB_CREW_NAVPATH, list())
+		return
+	override_blackboard_key(BB_CREW_NAVPATH, path.Copy())
+
+/// Clears the cached navigation path.
+/datum/ai_controller/crew_human/proc/clear_navpath()
+	override_blackboard_key(BB_CREW_NAVPATH, list())
+
+/// Returns the last recorded speech intent (ic|radio|emote).
+/datum/ai_controller/crew_human/proc/get_intent()
+	var/intent = blackboard[BB_CREW_INTENT]
+	return istext(intent) ? intent : null
+
+/// Records a new speech intent on the blackboard.
+/datum/ai_controller/crew_human/proc/set_intent(intent)
+	if(isnull(intent) || !istext(intent))
+		clear_blackboard_key(BB_CREW_INTENT)
+		return
+	set_blackboard_key(BB_CREW_INTENT, intent)
+
+/// Returns the currently targeted radio channel.
+/datum/ai_controller/crew_human/proc/get_target_channel()
+	var/channel = blackboard[BB_CREW_TARGET_CHANNEL]
+	return istext(channel) ? channel : null
+
+/// Updates the radio channel target.
+/datum/ai_controller/crew_human/proc/set_target_channel(channel)
+	if(isnull(channel) || !istext(channel))
+		clear_blackboard_key(BB_CREW_TARGET_CHANNEL)
+		return
+	set_blackboard_key(BB_CREW_TARGET_CHANNEL, channel)
+
+/// TRUE when the most recent speech line was a fallback.
+/datum/ai_controller/crew_human/proc/was_last_line_fallback()
+	return !!blackboard[BB_CREW_FALLBACK_FLAG]
+
+/// Sets the fallback flag on the blackboard.
+/datum/ai_controller/crew_human/proc/set_fallback_flag(flag)
+	set_blackboard_key(BB_CREW_FALLBACK_FLAG, !!flag)
+
+/// Clears the fallback flag.
+/datum/ai_controller/crew_human/proc/clear_fallback_flag()
+	set_blackboard_key(BB_CREW_FALLBACK_FLAG, FALSE)
+
+/// Builds a debug-friendly snapshot of the blackboard contents.
+/datum/ai_controller/crew_human/proc/get_blackboard_debug_entries()
+	var/list/entries = list()
+	for(var/key in blackboard)
+		var/value = blackboard[key]
+		entries += list(list(
+			"key" = key,
+			"type" = ai_crew_debug_type(value),
+			"summary" = ai_crew_debug_format_value(value),
+			"length" = islist(value) ? length(value) : null,
+		))
+	return entries
+
+/// Returns a structured payload consumed by the admin inspector UI.
+/datum/ai_controller/crew_human/proc/get_inspector_payload()
+	var/list/payload = list(
+		"id" = controller_id,
+		"label" = get_controller_label(),
+		"attach_reason" = attach_reason,
+		"ai_status" = ai_status,
+		"tick_interval_ds" = tick_interval,
+		"next_tick_time" = next_tick_time,
+	)
+	var/mob/living/carbon/human/human = controlled_human
+	payload["mob_name"] = human ? human.name : null
+	payload["mob_ref"] = human ? REF(human) : null
+	payload["mob_stat"] = human ? human.stat : null
+	payload["loc"] = human ? AREACOORD(human) : CREW_BB_VALUE_EMPTY
+	payload["blackboard"] = get_blackboard_debug_entries()
+	return payload
 
 /datum/ai_controller/crew_human/process(seconds_per_tick)
 	if(!AI_CREW_ENABLED)

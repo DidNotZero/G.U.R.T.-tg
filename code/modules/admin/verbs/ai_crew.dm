@@ -39,4 +39,13 @@ ADMIN_VERB(list_ai_crew_controllers, R_DEBUG, "List AI Crew Controllers", "List 
 		var/descriptor = human ? human.name : "(no mob)"
 		to_chat(user, span_info(" - [controller.get_controller_label()] → [descriptor], stat=[state], loc=[location]"))
 
+ADMIN_VERB(open_ai_crew_inspector, R_DEBUG, "AI Crew Inspector", "Open the AI Crew blackboard inspector panel.", ADMIN_CATEGORY_DEBUG)
+	var/mob/admin_mob = user?.mob
+	if(!ismob(admin_mob))
+		to_chat(user, span_warning("You must be controlling a mob to open the inspector."))
+		return
+	if(!length(GLOB.ai_crew_controllers))
+		to_chat(user, span_notice("No AI Crew controllers are currently active; the inspector will open with an empty list."))
+	GLOB.ai_crew_inspector.ui_interact(admin_mob)
+
 #endif
