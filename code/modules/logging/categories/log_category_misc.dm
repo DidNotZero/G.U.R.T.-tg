@@ -60,6 +60,10 @@
 	category = LOG_CATEGORY_SPEECH_INDICATOR
 	config_flag = /datum/config_entry/flag/log_speech_indicators
 
+/datum/log_category/ai_crew
+	category = LOG_CATEGORY_AI_CREW
+	schema_version = "1.0.0"
+
 // Logs seperately, printed into on server shutdown to store hard deletes and such
 /datum/log_category/qdel
 	category = LOG_CATEGORY_QDEL

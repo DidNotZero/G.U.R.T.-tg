@@ -2,7 +2,6 @@
 
 /// Basic controller stub for human AI crew placeholders.
 /datum/ai_controller/crew_human
-	name = "AI Crew Human Controller"
 	/// Unique identifier for logging and debugging.
 	var/controller_id
 	/// Next id allocator shared across all controllers.
@@ -30,7 +29,10 @@
 
 	TryPossessPawn(atom/new_pawn)
 		if(!ishuman(new_pawn))
-			log_subsystem("ai_crew", "Refused to attach controller#[controller_id] to non-human [new_pawn ? new_pawn.type : "null"]")
+			ai_crew_log("refused controller attach", list(
+				"controller" = controller_id,
+				"target_type" = new_pawn ? new_pawn.type : "null",
+			), TRUE)
 			return AI_CONTROLLER_INCOMPATIBLE
 
 /datum/ai_controller/crew_human/PossessPawn(atom/new_pawn)
@@ -46,7 +48,12 @@
 	controlled_human?.update_pipe_vision()
 	next_tick_time = world.time
 	var/location = controlled_human ? AREACOORD(controlled_human) : "unknown"
-	log_subsystem("ai_crew", "controller#[controller_id] attached to [controlled_human ? controlled_human.name : "unknown"] at [location] (reason=[attach_reason])")
+	ai_crew_log("controller attached", list(
+		"controller" = controller_id,
+		"mob" = controlled_human ? controlled_human.name : "unknown",
+		"loc" = location,
+		"reason" = attach_reason,
+	))
 	return .
 
 /datum/ai_controller/crew_human/UnpossessPawn(destroy)
@@ -80,7 +87,11 @@
 	if(QDELETED(src))
 		return
 	var/location = controlled_human ? AREACOORD(controlled_human) : "unknown"
-	log_subsystem("ai_crew", "controller#[controller_id] shutting down ([reason]) at [location]")
+	ai_crew_log("controller shutdown", list(
+		"controller" = controller_id,
+		"reason" = reason,
+		"loc" = location,
+	))
 	qdel(src)
 
 /datum/ai_controller/crew_human/process(seconds_per_tick)
@@ -104,7 +115,13 @@
 		next_tick_time = world.time + tick_interval
 		if(AI_CREW_DEBUG_ENABLED)
 			var/location = AREACOORD(controlled_human)
-			log_subsystem("ai_crew", "controller#[controller_id] tick: loc=[location] health=[controlled_human.getBruteLoss()+controlled_human.getFireLoss()] mood=[controlled_human.mob_mood ? controlled_human.mob_mood.sanity : "n/a"]")
+			ai_crew_log("controller tick", list(
+				"controller" = controller_id,
+				"loc" = location,
+				"brute" = controlled_human.getBruteLoss(),
+				"burn" = controlled_human.getFireLoss(),
+				"mood" = controlled_human.mob_mood ? controlled_human.mob_mood.sanity : null,
+			), TRUE)
 	return
 
 PROCESSING_SUBSYSTEM_DEF(ai_crew)
@@ -146,5 +163,13 @@ PROCESSING_SUBSYSTEM_DEF(ai_crew)
 /proc/ai_crew_detach_all_controllers(reason = "global toggle")
 	for(var/datum/ai_controller/crew_human/controller as anything in GLOB.ai_crew_controllers.Copy())
 		controller.stop_controller(reason)
+
+/// Writes an entry to the AI Crew-specific log category.
+/proc/ai_crew_log(message, list/data, debug_only = FALSE)
+	if(debug_only && !AI_CREW_DEBUG_ENABLED)
+		return
+	if(isnull(data))
+		data = list()
+	logger.Log(LOG_CATEGORY_AI_CREW, message, data)
 
 #endif
