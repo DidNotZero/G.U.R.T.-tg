@@ -44,6 +44,12 @@
 
 /datum/config_entry/flag/allow_ai_multicam // allow ai multicamera mode
 
+/datum/config_entry/flag/ai_crew_enabled // SPLURT AI Crew rollout toggle
+	default = FALSE
+
+/datum/config_entry/flag/ai_crew_debug // Enables verbose AI Crew logging
+	default = FALSE
+
 /datum/config_entry/flag/disable_human_mood
 
 /datum/config_entry/flag/disable_secborg // disallow secborg model to be chosen.

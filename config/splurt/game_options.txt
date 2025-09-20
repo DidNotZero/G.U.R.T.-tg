@@ -26,3 +26,8 @@ HILBERTSHOTEL_ENABLED
 # Toggle on to disallow ghost cafe rooms from being accessed through the station and viceversa
 # Enabled by default
 HILBERTSHOTEL_GHOST_CAFE_RESTRICTED
+
+## Human AI Crew controls (see docs/ai_crew_spec.md §9 for details)
+#AI_CREW_ENABLED 0
+#AI_CREW_DEBUG 0
+#AI_GATEWAY_URL http://127.0.0.1:8080

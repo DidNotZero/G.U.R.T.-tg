@@ -28,3 +28,19 @@
 	if (str_var && str_var[length(str_var)] != "/")
 		str_var += "/"
 	return ..(str_var)
+
+/datum/config_entry/string/ai_gateway_url
+	protection = CONFIG_ENTRY_LOCKED
+	default = ""
+
+/datum/config_entry/string/ai_gateway_url/ValidateAndSet(str_var)
+	if(!VASProcCallGuard(str_var))
+		return FALSE
+	str_var = trim(str_var)
+	if(!length(str_var))
+		config_entry_value = ""
+		return TRUE
+	if(str_var[length(str_var)] == "/")
+		str_var = copytext(str_var, 1, length(str_var))
+	config_entry_value = str_var
+	return TRUE

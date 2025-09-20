@@ -170,6 +170,15 @@ ALLOW_AI
 ## Allow the AI Multicamera feature to be used by AI players
 ALLOW_AI_MULTICAM
 
+## Human AI Crew rollout toggle. Leave hashed (0) until features stabilize.
+#AI_CREW_ENABLED 0
+
+## Verbose AI Crew logging for development environments.
+#AI_CREW_DEBUG 0
+
+## Human AI Crew gateway URL (set per environment).
+#AI_GATEWAY_URL http://127.0.0.1:8080
+
 ## Secborg ###
 ## Uncomment to prevent the security cyborg model from being chosen
 #DISABLE_SECBORG

@@ -69,6 +69,16 @@
 /// Flags for passive mobs that are easy to push around
 #define PASSIVE_AI_FLAGS (PAUSE_DURING_DO_AFTER | STOP_MOVING_WHEN_PULLED)
 
+#ifdef CREW_AI_FOUNDATION
+#define AI_CREW_ENABLED (CONFIG_GET(flag/ai_crew_enabled))
+#define AI_CREW_DEBUG_ENABLED (CONFIG_GET(flag/ai_crew_debug))
+#define AI_CREW_GATEWAY_URL (CONFIG_GET(string/ai_gateway_url))
+#else
+#define AI_CREW_ENABLED FALSE
+#define AI_CREW_DEBUG_ENABLED FALSE
+#define AI_CREW_GATEWAY_URL ""
+#endif
+
 //Base Subtree defines
 
 ///This subtree should cancel any further planning, (Including from other subtrees)
