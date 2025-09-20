@@ -177,7 +177,7 @@ ADMIN_VERB(toggle_ai_crew, R_SERVER, "Toggle AI Crew", "Toggle the AI Crew featu
 	var/new_state_text = !ai_crew_state ? "ENABLED" : "DISABLED"
 	message_admins(span_adminnotice("[key_name_admin(user)] toggled AI Crew to [new_state_text]."))
 	log_admin("[key_name(user)] toggled AI Crew to [new_state_text].")
-	log_subsystem("ai_crew", "Admin [key_name(user)] toggled AI Crew to [new_state_text].")
+	logger.Log(LOG_CATEGORY_CONFIG, "AI Crew feature flag set to [new_state_text] by [key_name(user)].")
 	SSblackbox.record_feedback("nested tally", "admin_toggle", 1, list("Toggle AI Crew", new_state_text))
 
 ADMIN_VERB(toggle_respawn, R_SERVER, "Toggle Respawn", "Toggle the ability to respawn.", ADMIN_CATEGORY_SERVER)
