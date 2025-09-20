@@ -8,6 +8,7 @@ Optimumtact = Host
 LemonInTheDark = Host
 CitrusGender = Game Master
 NewSta = Game Master
+LordBitter = Game Master
 Expletives = Game Master
 kingofkosmos = Game Master
 MrStonedOne = Lazy Master
